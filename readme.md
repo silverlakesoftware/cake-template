@@ -28,5 +28,5 @@ at will.  Nuget package downloads can be made deterministic via a local caching 
 * Deleting tools\nuget.exe will update nuget.exe (to latest from nuget.org).
 * Deleting the tools folder completely will update everything.
 * build.ps1 and build.sh are only updated if they already exist.
-* The build.cake file in this repo runs a test of the powershell bootstrap script.
+* The build.cake file in this repo runs a test of the bootstrap script.
 * TEMPLATE_URL can be updated to use a different repo.

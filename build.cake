@@ -5,13 +5,26 @@ Task("Default")
 {
     CreateDirectory(OutputDir);
     CleanDirectory(OutputDir);
-    CopyFile(File("build.ps1"),OutputDir + File("build.ps1"));
-    System.IO.File.WriteAllText(OutputDir + File("build.cake"),"");
-    StartProcess("powershell.exe", new ProcessSettings()
+    System.IO.File.WriteAllText(OutputDir + File("build.cake"),"Information(\"Works!\");");
+
+    if (IsRunningOnWindows())
     {
-        Arguments = "-ExecutionPolicy ByPass -File build.ps1 -Verbose",
-        WorkingDirectory = OutputDir
-    });
+        CopyFile(File("build.ps1"),OutputDir + File("build.ps1"));
+        StartProcess("powershell.exe", new ProcessSettings()
+        {
+            Arguments = "-ExecutionPolicy ByPass -File build.ps1 -Verbose",
+            WorkingDirectory = OutputDir
+        });
+    }
+    if (IsRunningOnUnix())
+    {
+        CopyFile(File("build.sh"),OutputDir + File("build.sh"));
+        StartProcess("bash", new ProcessSettings()
+        {
+            Arguments = "build.sh",
+            WorkingDirectory = OutputDir
+        });
+    }
 });
 
 RunTarget("Default");
