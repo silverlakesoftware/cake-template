@@ -1,0 +1,4 @@
+*
+!.gitignore
+!nuget.exe
+!packages.config
