@@ -1,6 +1,6 @@
 ##########################################################################
 # This is the Cake bootstrapper script for PowerShell.
-# This file was downloaded from https://github.com/cake-build/resources
+# This file was downloaded from https://github.com/silverlake-pub/cake-template
 # Feel free to change this file to fit your needs.
 ##########################################################################
 
@@ -129,9 +129,9 @@ if (!(Test-Path $PACKAGES_CONFIG)) {
         $webClient.DownloadFile($TEMPLATE_URL + "/tools/packages.config", $PACKAGES_CONFIG);
         $webClient.DownloadFile($TEMPLATE_URL + "/tools/.gitignore", (Join-Path $TOOLS_DIR ".gitignore"));
         $webClient.DownloadFile($TEMPLATE_URL + "/build.ps1", (Join-Path $PSScriptRoot "build.ps1"));
-        $bashScriptPath = Join-Path $PSScriptRoot "build.ps1";
-        if (!(Test-Path $bashScriptPath)) {
-            $webClient.DownloadFile($TEMPLATE_URL + "build.ps1", $bashScriptPath);
+        $bashScriptPath = Join-Path $PSScriptRoot "build.sh";
+        if (Test-Path $bashScriptPath) {
+            $webClient.DownloadFile($TEMPLATE_URL + "build.sh", $bashScriptPath);
         }
     }
     catch
@@ -165,7 +165,7 @@ if(-Not $SkipToolPackageRestore.IsPresent) {
     if((!(Test-Path $PACKAGES_CONFIG_MD5)) -Or
       ($md5Hash -ne (Get-Content $PACKAGES_CONFIG_MD5 ))) {
         Write-Verbose -Message "Missing or changed package.config hash..."
-        Remove-Item * -Recurse -Exclude packages.config,nuget.exe
+        Remove-Item * -Recurse -Exclude .gitignore,packages.config,nuget.exe
     }
 
     Write-Verbose -Message "Restoring tools from NuGet..."

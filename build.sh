@@ -2,7 +2,7 @@
 
 ##########################################################################
 # This is the Cake bootstrapper script for Linux and OS X.
-# This file was downloaded from https://github.com/cake-build/resources
+# This file was downloaded from https://github.com/silverlake-pub/cake-template
 # Feel free to change this file to fit your needs.
 ##########################################################################
 
@@ -54,11 +54,11 @@ fi
 
 # Bootstrap cake build files if packages.config doesn't exist
 if [ ! -f "$TOOLS_DIR/packages.config" ]; then
-    echo "Downloading packages.config..."
+    echo "Downloading bootstrap files..."
     curl -Lsfo "$TOOLS_DIR/packages.config" "$TEMPLATE_URL/tools/packages.config"
     curl -Lsfo "$TOOLS_DIR/.gitignore" "$TEMPLATE_URL/tools/.gitignore"
     curl -Lsfo "build.sh" "$TEMPLATE_URL/build.sh"
-    if [ ! -f "build.ps1" ]; then
+    if [ -f "build.ps1" ]; then
         curl -Lsfo "build.ps1" "$TEMPLATE_URL/build.ps1"
     fi
     if [ $? -ne 0 ]; then
