@@ -131,7 +131,7 @@ if (!(Test-Path $PACKAGES_CONFIG)) {
         $webClient.DownloadFile($TEMPLATE_URL + "/build.ps1", (Join-Path $PSScriptRoot "build.ps1"));
         $bashScriptPath = Join-Path $PSScriptRoot "build.sh";
         if (Test-Path $bashScriptPath) {
-            $webClient.DownloadFile($TEMPLATE_URL + "build.sh", $bashScriptPath);
+            $webClient.DownloadFile($TEMPLATE_URL + "/build.sh", $bashScriptPath);
         }
     }
     catch
