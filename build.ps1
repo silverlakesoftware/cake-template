@@ -126,9 +126,9 @@ if (!(Test-Path $PACKAGES_CONFIG)) {
     try
     {
         $webClient = (New-Object System.Net.WebClient);
-        $webClient.DownloadFile($TEMPLATE_URL + "tools/packages.config", $PACKAGES_CONFIG);
-        $webClient.DownloadFile($TEMPLATE_URL + "tools/gitignore.txt", (Join-Path $TOOLS_DIR ".gitignore"));
-        $webClient.DownloadFile($TEMPLATE_URL + "build.ps1", (Join-Path $PSScriptRoot "build.ps1"));
+        $webClient.DownloadFile($TEMPLATE_URL + "/tools/packages.config", $PACKAGES_CONFIG);
+        $webClient.DownloadFile($TEMPLATE_URL + "/tools/gitignore.txt", (Join-Path $TOOLS_DIR ".gitignore"));
+        $webClient.DownloadFile($TEMPLATE_URL + "/build.ps1", (Join-Path $PSScriptRoot "build.ps1"));
         $bashScriptPath = Join-Path $PSScriptRoot "build.ps1";
         if (!(Test-Path $bashScriptPath)) {
             $webClient.DownloadFile($TEMPLATE_URL + "build.ps1", $bashScriptPath);
