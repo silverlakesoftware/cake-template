@@ -55,6 +55,11 @@ Param(
     [string[]]$ScriptArgs
 )
 
+# Define sources
+$NUGET_SOURCE = if ($env:NUGET_SOURCE -eq $null) { "https://www.nuget.org/api/v2" } else { $env:NUGET_SOURCE }
+$NUGET_VERSION = "3.5.0"
+$TEMPLATE_URL = "https://raw.githubusercontent.com/silverlake-pub/cake-template/master"
+
 [Reflection.Assembly]::LoadWithPartialName("System.Security") | Out-Null
 function MD5HashFile([string] $filePath)
 {
@@ -80,6 +85,34 @@ function MD5HashFile([string] $filePath)
     }
 }
 
+# Sources:
+# https://serverfault.com/a/201604
+# https://msdn.microsoft.com/en-us/library/ms723202(v=vs.85).aspx
+# https://gallery.technet.microsoft.com/scriptcenter/PowerShell-Get-Specific-9b35352f
+function UnzipTools([string] $filePath, [string] $destPath)
+{
+    Write-Verbose -Message ("Unzipping tools folder from " + $filePath + " to " + $destPath)
+    $shell_app=new-object -com shell.application
+    $zip_file = $shell_app.namespace($filePath)
+    $destination = $shell_app.namespace($destPath)
+    foreach($item in $zip_file.items()) 
+    { 
+        if ($item.name() -eq "tools") 
+        {
+             $destination.Copyhere($item.GetFolder.items(),4+16+1024)
+        }
+    }
+}
+
+# Sources:
+# http://stackoverflow.com/a/19132572/287602
+function SwitchToCRLFLineEndings([string] $filePath)
+{
+    $text = [IO.File]::ReadAllText($filePath) -replace "`r`n", "`n"
+    $text = $text -replace "`n", "`r`n"
+    [IO.File]::WriteAllText($filePath, $text)
+}
+
 Write-Host "Preparing to run build script..."
 
 if(!$PSScriptRoot){
@@ -89,10 +122,8 @@ if(!$PSScriptRoot){
 $TOOLS_DIR = Join-Path $PSScriptRoot "tools"
 $NUGET_EXE = Join-Path $TOOLS_DIR "nuget.exe"
 $CAKE_EXE = Join-Path $TOOLS_DIR "Cake/Cake.exe"
-$NUGET_URL = "https://dist.nuget.org/win-x86-commandline/latest/nuget.exe"
 $PACKAGES_CONFIG = Join-Path $TOOLS_DIR "packages.config"
 $PACKAGES_CONFIG_MD5 = Join-Path $TOOLS_DIR "packages.config.md5sum"
-$TEMPLATE_URL = "https://raw.githubusercontent.com/silverlake-pub/cake-template/master"
 
 # Should we use mono?
 $UseMono = "";
@@ -125,13 +156,27 @@ if (!(Test-Path $PACKAGES_CONFIG)) {
     Write-Verbose -Message "Downloading bootstrap files..."
     try
     {
+        $thisScriptPath = (Join-Path $PSScriptRoot "build.ps1")
+        $thisScriptHash = MD5HashFile $thisScriptPath
         $webClient = (New-Object System.Net.WebClient);
         $webClient.DownloadFile($TEMPLATE_URL + "/tools/packages.config", $PACKAGES_CONFIG);
-        $webClient.DownloadFile($TEMPLATE_URL + "/tools/.gitignore", (Join-Path $TOOLS_DIR ".gitignore"));
-        $webClient.DownloadFile($TEMPLATE_URL + "/build.ps1", (Join-Path $PSScriptRoot "build.ps1"));
+        SwitchToCRLFLineEndings $PACKAGES_CONFIG
+        $gitIgnorePath = Join-Path $TOOLS_DIR ".gitignore";
+        $webClient.DownloadFile($TEMPLATE_URL + "/tools/.gitignore", $gitIgnorePath);
+        SwitchToCRLFLineEndings $gitIgnorePath
+        #$webClient.DownloadFile($TEMPLATE_URL + "/build.ps1", $thisScriptPath);
+        $preSwitchHash = MD5HashFile $thisScriptPath
+        SwitchToCRLFLineEndings $thisScriptPath
         $bashScriptPath = Join-Path $PSScriptRoot "build.sh";
-        if (Test-Path $bashScriptPath) {
+        if (Test-Path $bashScriptPath)
+        {
             $webClient.DownloadFile($TEMPLATE_URL + "/build.sh", $bashScriptPath);
+            SwitchToCRLFLineEndings $bashScriptPath
+        }
+        if ($thisScriptHash -ne (MD5HashFile $thisScriptPath) -and $thisScriptHash -ne $preSwitchHash)
+        {
+            Write-Host "The build script has updated please run again."
+            exit
         }
     }
     catch
@@ -143,16 +188,20 @@ if (!(Test-Path $PACKAGES_CONFIG)) {
 
 # Try download NuGet.exe if not exists
 if (!(Test-Path $NUGET_EXE)) {
-    Write-Verbose -Message "Downloading NuGet.exe..."
+    Write-Verbose -Message ("Downloading NuGet.CommandLine." + $NUGET_VERSION + " package for NuGet.exe")
     try {
-        (New-Object System.Net.WebClient).DownloadFile($NUGET_URL, $NUGET_EXE)
+        $nugetPackagePath = Join-Path $TOOLS_DIR ("nuget.commandline." + $NUGET_VERSION + ".zip");
+        $nugetPackageUrl = $NUGET_SOURCE + "/package/NuGet.CommandLine/" + $NUGET_VERSION;
+        (New-Object System.Net.WebClient).DownloadFile($nugetPackageUrl, $nugetPackagePath);
+        UnzipTools $nugetPackagePath $TOOLS_DIR;
+        Remove-item $nugetPackagePath
     } catch {
-        Write-Error "Could not download NuGet.exe."
+        Write-Error "Could not download Nuget.CommandLine package and extract NuGet.exe."
         throw $_.Exception;
     }
 }
 
-# Save nuget.exe path to environment to be available to child processed
+# Save nuget.exe path to environment to be available to child processes
 $ENV:NUGET_EXE = $NUGET_EXE
 
 # Restore tools from NuGet?
