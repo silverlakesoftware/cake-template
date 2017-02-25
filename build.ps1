@@ -58,7 +58,7 @@ Param(
 # Define sources
 $NUGET_SOURCE = if ($env:NUGET_SOURCE -eq $null) { "https://www.nuget.org/api/v2" } else { $env:NUGET_SOURCE }
 $NUGET_VERSION = "3.5.0"
-$TEMPLATE_URL = "https://raw.githubusercontent.com/silverlake-pub/cake-template/master"
+$TEMPLATE_URL = "https://raw.githubusercontent.com/silverlake-pub/cake-template/dev"
 
 [Reflection.Assembly]::LoadWithPartialName("System.Security") | Out-Null
 function MD5HashFile([string] $filePath)
@@ -89,6 +89,7 @@ function MD5HashFile([string] $filePath)
 # https://serverfault.com/a/201604
 # https://msdn.microsoft.com/en-us/library/ms723202(v=vs.85).aspx
 # https://gallery.technet.microsoft.com/scriptcenter/PowerShell-Get-Specific-9b35352f
+# https://stackoverflow.com/a/21551647/287602
 function UnzipTools([string] $filePath, [string] $destPath)
 {
     Write-Verbose -Message ("Unzipping tools folder from " + $filePath + " to " + $destPath)
@@ -99,7 +100,7 @@ function UnzipTools([string] $filePath, [string] $destPath)
     { 
         if ($item.name -eq "tools") 
         {
-             $destination.Copyhere($item.GetFolder.items(),4+16+1024)
+             $destination.Copyhere($item.GetFolder.items(),4+8+16+512+1024)
         }
     }
 }
