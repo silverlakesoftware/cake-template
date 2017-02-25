@@ -1,3 +1,6 @@
 *
 !.gitignore
 !packages.config
+
+# Put unzip.exe in this folder to run without .Net 4.5
+!unzip.exe

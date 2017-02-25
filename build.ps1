@@ -86,26 +86,6 @@ function MD5HashFile([string] $filePath)
 }
 
 # Sources:
-# https://serverfault.com/a/201604
-# https://msdn.microsoft.com/en-us/library/ms723202(v=vs.85).aspx
-# https://gallery.technet.microsoft.com/scriptcenter/PowerShell-Get-Specific-9b35352f
-# https://stackoverflow.com/a/21551647/287602
-function UnzipTools([string] $filePath, [string] $destPath)
-{
-    Write-Verbose -Message ("Unzipping tools folder from " + $filePath + " to " + $destPath)
-    $shell_app=new-object -com shell.application
-    $zip_file = $shell_app.namespace($filePath)
-    $destination = $shell_app.namespace($destPath)
-    foreach($item in $zip_file.items()) 
-    { 
-        if ($item.name -eq "tools") 
-        {
-             $destination.Copyhere($item.GetFolder.items(),4+8+16+512+1024)
-        }
-    }
-}
-
-# Sources:
 # http://stackoverflow.com/a/19132572/287602
 function SwitchToCRLFLineEndings([string] $filePath)
 {
@@ -121,6 +101,7 @@ if(!$PSScriptRoot){
 }
 
 $TOOLS_DIR = Join-Path $PSScriptRoot "tools"
+$UNZIP_EXE = Join-Path $TOOLS_DIR "unzip.exe"
 $NUGET_EXE = Join-Path $TOOLS_DIR "nuget.exe"
 $CAKE_EXE = Join-Path $TOOLS_DIR "Cake/Cake.exe"
 $PACKAGES_CONFIG = Join-Path $TOOLS_DIR "packages.config"
@@ -165,7 +146,7 @@ if (!(Test-Path $PACKAGES_CONFIG)) {
         $gitIgnorePath = Join-Path $TOOLS_DIR ".gitignore";
         $webClient.DownloadFile($TEMPLATE_URL + "/tools/.gitignore", $gitIgnorePath);
         SwitchToCRLFLineEndings $gitIgnorePath
-        #$webClient.DownloadFile($TEMPLATE_URL + "/build.ps1", $thisScriptPath);
+        $webClient.DownloadFile($TEMPLATE_URL + "/build.ps1", $thisScriptPath);
         $preSwitchHash = MD5HashFile $thisScriptPath
         SwitchToCRLFLineEndings $thisScriptPath
         $bashScriptPath = Join-Path $PSScriptRoot "build.sh";
@@ -194,7 +175,26 @@ if (!(Test-Path $NUGET_EXE)) {
         $nugetPackagePath = Join-Path $TOOLS_DIR ("nuget.commandline." + $NUGET_VERSION + ".zip");
         $nugetPackageUrl = $NUGET_SOURCE + "/package/NuGet.CommandLine/" + $NUGET_VERSION;
         (New-Object System.Net.WebClient).DownloadFile($nugetPackageUrl, $nugetPackagePath);
-        UnzipTools $nugetPackagePath $TOOLS_DIR;
+        if (Test-Path $UNZIP_EXE)
+        {
+            Invoke-Expression "& $UNZIP_EXE -j -C -q `"$nugetPackagePath`" `"tools/nuget.exe`" -d `"$TOOLS_DIR`""
+        }
+        else 
+        {
+            Add-Type -assembly "System.IO.Compression.Filesystem";
+            $zipArchive = [IO.Compression.Zipfile]::OpenRead($nugetPackagePath);
+            try 
+            {
+                $zipEntry = $zipArchive.Entries | Where-Object {$_.FullName -eq "tools/nuget.exe"} | Select-Object -First 1
+                [IO.Compression.ZipFileExtensions]::ExtractToFile($zipEntry,$NUGET_EXE);
+            }
+            catch {
+                throw;
+            }
+            finally {
+                $zipArchive.Dispose();
+            }
+        }
         Remove-item $nugetPackagePath
     } catch {
         Write-Error "Could not download Nuget.CommandLine package and extract NuGet.exe."
