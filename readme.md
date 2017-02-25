@@ -11,6 +11,12 @@ Open a new PowerShell window and run the following command.
 Invoke-WebRequest https://raw.githubusercontent.com/silverlake-pub/cake-template/master/build.ps1 -OutFile build.ps1
 ```
 
+For PowerShell v2:
+```powershell
+(New-Object System.Net.WebClient).DownloadString("https://raw.githubusercontent.com/silverlake-pub/cake-temp
+late/master/build.ps1") >build.ps1
+```
+
 ## Linux / OSX
 Open a new shell and run the following command.
 ```bash

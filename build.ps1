@@ -97,7 +97,7 @@ function UnzipTools([string] $filePath, [string] $destPath)
     $destination = $shell_app.namespace($destPath)
     foreach($item in $zip_file.items()) 
     { 
-        if ($item.name() -eq "tools") 
+        if ($item.name -eq "tools") 
         {
              $destination.Copyhere($item.GetFolder.items(),4+16+1024)
         }
