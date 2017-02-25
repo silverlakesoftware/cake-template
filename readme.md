@@ -13,8 +13,7 @@ Invoke-WebRequest https://raw.githubusercontent.com/silverlake-pub/cake-template
 
 For PowerShell v2:
 ```powershell
-(New-Object System.Net.WebClient).DownloadString("https://raw.githubusercontent.com/silverlake-pub/cake-temp
-late/master/build.ps1") >build.ps1
+(New-Object System.Net.WebClient).DownloadString("https://raw.githubusercontent.com/silverlake-pub/cake-template/master/build.ps1") >build.ps1
 ```
 
 ## Linux / OSX
