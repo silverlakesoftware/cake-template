@@ -101,7 +101,7 @@ if(!$PSScriptRoot){
 }
 
 $TOOLS_DIR = Join-Path $PSScriptRoot "tools"
-$UNZIP_EXE = Join-Path $TOOLS_DIR "unzip.exe"
+$UNZIP_EXE = Join-Path $TOOLS_DIR "win32/unzip.exe"
 $NUGET_EXE = Join-Path $TOOLS_DIR "nuget.exe"
 $CAKE_EXE = Join-Path $TOOLS_DIR "Cake/Cake.exe"
 $PACKAGES_CONFIG = Join-Path $TOOLS_DIR "packages.config"
@@ -170,35 +170,48 @@ if (!(Test-Path $PACKAGES_CONFIG)) {
 
 # Try download NuGet.exe if not exists
 if (!(Test-Path $NUGET_EXE)) {
-    Write-Verbose -Message ("Downloading NuGet.CommandLine." + $NUGET_VERSION + " package for NuGet.exe")
+    Write-Host "Downloading NuGet.CommandLine.$NUGET_VERSION package to get NuGet.exe..."
     try {
         $nugetPackagePath = Join-Path $TOOLS_DIR ("nuget.commandline." + $NUGET_VERSION + ".zip");
         $nugetPackageUrl = $NUGET_SOURCE + "/package/NuGet.CommandLine/" + $NUGET_VERSION;
         (New-Object System.Net.WebClient).DownloadFile($nugetPackageUrl, $nugetPackagePath);
-        if (Test-Path $UNZIP_EXE)
-        {
-            Invoke-Expression "& $UNZIP_EXE -j -C -q `"$nugetPackagePath`" `"tools/nuget.exe`" -d `"$TOOLS_DIR`""
+
+        # Attempt to load compression DLL from .NET 4.5
+        $CanLoadCompression = $false;
+        try {
+            Add-Type -AssemblyName "System.IO.Compression.Filesystem, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089";
+            $CanLoadCompression = $true;
         }
-        else 
+        catch { }
+
+        # If we could load the compression DLL use that
+        if ($CanLoadCompression)
         {
-            Add-Type -assembly "System.IO.Compression.Filesystem";
+            Write-Verbose "Decompressing NuGet package with .NET...";
             $zipArchive = [IO.Compression.Zipfile]::OpenRead($nugetPackagePath);
             try 
             {
                 $zipEntry = $zipArchive.Entries | Where-Object {$_.FullName -eq "tools/nuget.exe"} | Select-Object -First 1
                 [IO.Compression.ZipFileExtensions]::ExtractToFile($zipEntry,$NUGET_EXE);
             }
-            catch {
-                throw;
-            }
             finally {
                 $zipArchive.Dispose();
             }
         }
+        elseif (Test-Path $UNZIP_EXE)
+        {
+            Write-Verbose "Decompressing NuGet package with unzip.exe...";
+            Invoke-Expression "& $UNZIP_EXE -j -C -q `"$nugetPackagePath`" `"tools/nuget.exe`" -d `"$TOOLS_DIR`""
+        }
+        else {
+            Write-Host "NOTE: CLRVersion=$($PSVersionTable.CLRVersion)";
+            Write-Error "No available way to unzip package.  Either add unzip.exe to tools/win32 folder or run Powershell under CLR v4 with .NET 4.5.";
+            exit
+        }
         Remove-item $nugetPackagePath
     } catch {
         Write-Error "Could not download Nuget.CommandLine package and extract NuGet.exe."
-        throw $_.Exception;
+        throw
     }
 }
 

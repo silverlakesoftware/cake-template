@@ -1,6 +1,8 @@
+# This file is managed as part of the build.ps1 bootstrap script
 *
 !.gitignore
 !packages.config
 
 # Put unzip.exe in this folder to run without .Net 4.5
-!unzip.exe
+!win32
+!win32/unzip.exe
