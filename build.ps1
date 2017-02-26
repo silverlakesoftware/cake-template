@@ -58,7 +58,7 @@ Param(
 # Define sources
 $NUGET_SOURCE = if ($env:NUGET_SOURCE -eq $null) { "https://www.nuget.org/api/v2" } else { $env:NUGET_SOURCE }
 $NUGET_VERSION = "3.5.0"
-$TEMPLATE_URL = "https://raw.githubusercontent.com/silverlake-pub/cake-template/dev"
+$TEMPLATE_URL = "https://raw.githubusercontent.com/silverlake-pub/cake-template/master"
 
 [Reflection.Assembly]::LoadWithPartialName("System.Security") | Out-Null
 function MD5HashFile([string] $filePath)
