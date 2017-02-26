@@ -171,6 +171,7 @@ if (!(Test-Path $PACKAGES_CONFIG)) {
 # Try download NuGet.exe if not exists
 if (!(Test-Path $NUGET_EXE)) {
     Write-Host "Downloading NuGet.CommandLine.$NUGET_VERSION package to get NuGet.exe..."
+    Write-Host "Package Source = $NUGET_SOURCE"
     try {
         $nugetPackagePath = Join-Path $TOOLS_DIR ("nuget.commandline." + $NUGET_VERSION + ".zip");
         $nugetPackageUrl = $NUGET_SOURCE + "/package/NuGet.CommandLine/" + $NUGET_VERSION;
@@ -248,6 +249,11 @@ if(-Not $SkipToolPackageRestore.IsPresent) {
 # Make sure that Cake has been installed.
 if (!(Test-Path $CAKE_EXE)) {
     Throw "Could not find Cake.exe at $CAKE_EXE"
+}
+
+# By default use the same package source for Roslyn as we used to bootstrap NuGet
+if ($env:CAKE_ROSLYN_NUGETSOURCE -eq $null) {
+    $env:CAKE_ROSLYN_NUGETSOURCE = $env:NUGET_SOURCE
 }
 
 # Start Cake
