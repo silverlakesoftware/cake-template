@@ -9,7 +9,7 @@ for complete information.  The only difference here is the URLs for installing t
 ## Windows
 Open a new PowerShell window and run the following command.
 ```powershell
-iwr https://raw.githubusercontent.com/silverlake-pub/cake-template/master/build.ps1 -OutFile build.ps1
+iwr https://raw.githubusercontent.com/silverlake-pub/cake-template/master/build.ps1 -o build.ps1
 ```
 NOTE: iwr is an alias for Invoke-WebRequest
 
