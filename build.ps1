@@ -158,7 +158,7 @@ if (!(Test-Path $PACKAGES_CONFIG)) {
         if ($thisScriptHash -ne (MD5HashFile $thisScriptPath) -and $thisScriptHash -ne $preSwitchHash)
         {
             Write-Host "The build script has updated please run again."
-            exit
+            exit 2
         }
     }
     catch
@@ -207,12 +207,12 @@ if (!(Test-Path $NUGET_EXE)) {
         else {
             Write-Host "NOTE: CLRVersion=$($PSVersionTable.CLRVersion)";
             Write-Error "No available way to unzip package.  Either add unzip.exe to tools/win32 folder or run Powershell under CLR v4 with .NET 4.5.";
-            exit
+            exit 1
         }
         Remove-item $nugetPackagePath
     } catch {
         Write-Error "Could not download Nuget.CommandLine package and extract NuGet.exe."
-        throw
+        exit 1
     }
 }
 
