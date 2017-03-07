@@ -24,6 +24,15 @@ Open a new shell and run the following command.
 curl -Lsfo build.sh https://raw.githubusercontent.com/silverlake-pub/cake-template/master/build.sh
 ```
 
+## Visual Studio Code - Cake Extension
+Add the following to your settings file to use the bootstrap scripts from this repo:
+```json
+"cake.bootstrappers": {
+    "powershell": "https://raw.githubusercontent.com/silverlake-pub/cake-template/master/build.ps1",
+    "bash": "https://raw.githubusercontent.com/silverlake-pub/cake-template/master/build.sh"
+}
+```
+
 # Additional information
 
 This template's goal is to have the build be as close to deterministic as possible and yet be easily updated
